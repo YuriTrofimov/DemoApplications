@@ -219,12 +219,19 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\LookupRow.cs" />
     <Compile Include="Common\ViewModelBase.cs" />
     <Compile Include="Controls\DecimalInputControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Controls\DecimalInputControl.Designer.cs">
       <DependentUpon>DecimalInputControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\FilterCombo.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\FilterCombo.Designer.cs">
+      <DependentUpon>FilterCombo.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\IntegerInputControl.cs">
       <SubType>UserControl</SubType>
@@ -258,6 +265,9 @@
     <Compile Include="ViewModels\ProductViewModel.cs" />
     <EmbeddedResource Include="Controls\DecimalInputControl.resx">
       <DependentUpon>DecimalInputControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\FilterCombo.resx">
+      <DependentUpon>FilterCombo.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\NumericControl.resx">
       <DependentUpon>NumericControl.cs</DependentUpon>

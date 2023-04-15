@@ -20,10 +20,17 @@ namespace ProductDatabase.Data.Product
         Task<IEnumerable<Product>> GetAll();
 
         /// <summary>
+        /// Get all product categories
+        /// </summary>
+        /// <returns>Product category collection</returns>
+        Task<IEnumerable<ProductCategory>> GetAllCategories();
+
+        /// <summary>
         /// Import products from OpenXML XLSX file
         /// </summary>
         /// <param name="sourceFile">source XLSX file</param>
-        Task ImportFromExcel(string sourceFile);
+        /// <param name="categoryId">product category identifier</param>
+        Task ImportFromExcel(string sourceFile, int categoryId);
 
         /// <summary>
         /// Delete product by ID
@@ -36,5 +43,11 @@ namespace ProductDatabase.Data.Product
         /// </summary>
         /// <param name="product">Product to update</param>
         Task UpdateProduct(Product product);
+
+        /// <summary>
+        /// Creates product if article is not exist, otherwise updates product
+        /// </summary>
+        /// <param name="product">Product to create/update</param>
+        Task CreateOrUpdateProduct(Product product);
     }
 }

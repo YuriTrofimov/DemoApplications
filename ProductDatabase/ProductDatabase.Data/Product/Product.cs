@@ -36,5 +36,10 @@ namespace ProductDatabase.Data.Product
         /// Product stock amount
         /// </summary>
         public int Quantity { get; set; }
+
+        /// <summary>
+        /// Product category ID
+        /// </summary>
+        public int CategoryID { get; set; }
     }
 }

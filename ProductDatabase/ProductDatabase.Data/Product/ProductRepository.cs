@@ -1,12 +1,12 @@
 ﻿// Copyright (c) 2023 Yuri Trofimov.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 
 namespace ProductDatabase.Data.Product
 {
@@ -47,12 +47,13 @@ namespace ProductDatabase.Data.Product
             using (var con = new SqlConnection(this.connectionString))
             using (var cmd = con.CreateCommand())
             {
-                cmd.CommandText = "update dbo.Products set Article=@article,Name=@name,Price=@price,Quantity=@quantity where Id=@id";
+                cmd.CommandText = "update dbo.Products set Article=@article,Name=@name,Price=@price,Quantity=@quantity,CategoryID=@category where Id=@id";
                 cmd.Parameters.AddWithValue("@id", product.Id);
                 cmd.Parameters.AddWithValue("@article", product.Article);
                 cmd.Parameters.AddWithValue("@name", product.Name);
                 cmd.Parameters.AddWithValue("@price", product.Price);
                 cmd.Parameters.AddWithValue("@quantity", product.Quantity);
+                cmd.Parameters.AddWithValue("@category", product.CategoryID);
                 await con.OpenAsync();
                 await cmd.ExecuteNonQueryAsync();
             }
@@ -68,7 +69,7 @@ namespace ProductDatabase.Data.Product
             using (var con = new SqlConnection(this.connectionString))
             using (var cmd = con.CreateCommand())
             {
-                cmd.CommandText = "select Id, Article, Name, Price, Quantity from dbo.Products";
+                cmd.CommandText = "select Id, Article, Name, Price, Quantity, CategoryId from dbo.Products";
                 await con.OpenAsync();
                 using (var rdr = await cmd.ExecuteReaderAsync())
                 {
@@ -80,7 +81,8 @@ namespace ProductDatabase.Data.Product
                             Article = Convert.ToString(rdr["Article"]),
                             Name = Convert.ToString(rdr["Name"]),
                             Price = Convert.ToDecimal(rdr["Price"]),
-                            Quantity = Convert.ToInt32(rdr["Quantity"])
+                            Quantity = Convert.ToInt32(rdr["Quantity"]),
+                            CategoryID = Convert.ToInt32(rdr["CategoryId"])
                         });
                     }
                 }
@@ -92,8 +94,9 @@ namespace ProductDatabase.Data.Product
         /// Import products list from Excel format files
         /// </summary>
         /// <param name="filePath">Path to source file</param>
+        /// <param name="categoryId">product category identifier</param>
         /// <exception cref="ArgumentException">File type is not supported</exception>
-        public async Task ImportFromExcel(string filePath)
+        public async Task ImportFromExcel(string filePath, int categoryId)
         {
             var fi = new FileInfo(filePath);
             if (!fi.Exists) return;
@@ -110,13 +113,22 @@ namespace ProductDatabase.Data.Product
                     default:
                         throw new ArgumentException($"File type {fi.Extension} is not supported!");
                 }
+
+                if (!products.Columns.Contains("CategoryId"))
+                {
+                    products.Columns.Add("CategoryId", typeof(int));
+                    foreach (DataRow row in products.Rows)
+                    {
+                        row["CategoryId"] = categoryId;
+                    }
+                }
+
+                await ImportProductsToDB(products);
             }
             finally
             {
                 products?.Dispose();
             }
-
-            await ImportProductsToDB(products);
         }
 
         /// <summary>
@@ -136,6 +148,55 @@ namespace ProductDatabase.Data.Product
                 await con.OpenAsync();
                 await bulkInsert.WriteToServerAsync(products);
             }
+        }
+
+        /// <summary>
+        /// Creates product if article is not exist, otherwise updates product
+        /// </summary>
+        /// <param name="product">Product to create/update</param>
+        public async Task CreateOrUpdateProduct(Product product)
+        {
+            using (var con = new SqlConnection(this.connectionString))
+            using (var cmd = con.CreateCommand())
+            {
+                cmd.CommandText = "[dbo].[UpdateProduct]";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Article", product.Article);
+                cmd.Parameters.AddWithValue("@Name", product.Name);
+                cmd.Parameters.AddWithValue("@Price", product.Price);
+                cmd.Parameters.AddWithValue("@Quantity", product.Quantity);
+                cmd.Parameters.AddWithValue("@CategoryId", product.CategoryID);
+
+                await con.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        /// <summary>
+        /// Get all product categories
+        /// </summary>
+        /// <returns>Product category collection</returns>
+        public async Task<IEnumerable<ProductCategory>> GetAllCategories()
+        {
+            var result = new List<ProductCategory>();
+            using (var con = new SqlConnection(this.connectionString))
+            using (var cmd = con.CreateCommand())
+            {
+                cmd.CommandText = "select Id, Name from dbo.ProductCategory";
+                await con.OpenAsync();
+                using (var rdr = await cmd.ExecuteReaderAsync())
+                {
+                    while (await rdr.ReadAsync())
+                    {
+                        result.Add(new ProductCategory
+                        {
+                            Id = Convert.ToInt32(rdr["Id"]),
+                            Name = Convert.ToString(rdr["Name"]),
+                        });
+                    }
+                }
+            }
+            return result;
         }
     }
 }

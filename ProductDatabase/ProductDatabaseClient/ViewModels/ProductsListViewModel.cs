@@ -1,10 +1,10 @@
 ﻿// Copyright (c) 2023 Yuri Trofimov.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.ComponentModel;
-using System.Threading.Tasks;
 using ProductDatabase.Data.Product;
 using ProductDatabaseClient.Common;
+using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace ProductDatabaseClient.ViewModels
 {
@@ -19,9 +19,12 @@ namespace ProductDatabaseClient.ViewModels
         {
             this.productRepository = productRepository;
             ProductsList = new BindingList<Product>();
+            ProductCategoryList = new BindingList<ProductCategory>();
         }
 
-        public BindingList<Product> ProductsList { get; set; }
+        public BindingList<Product> ProductsList { get; private set; }
+
+        public BindingList<ProductCategory> ProductCategoryList { get; private set; }
 
         private bool loading;
 
@@ -31,7 +34,7 @@ namespace ProductDatabaseClient.ViewModels
         public bool Loading
         {
             get => loading;
-            set
+            private set
             {
                 if (loading != value)
                 {
@@ -77,6 +80,21 @@ namespace ProductDatabaseClient.ViewModels
             }
         }
 
+        private object selectedCategory;
+
+        public object SelectedCategory
+        {
+            get => selectedCategory;
+            set
+            {
+                if (selectedCategory != value)
+                {
+                    selectedCategory = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
         /// <summary>
         /// Load product list
         /// </summary>
@@ -91,6 +109,28 @@ namespace ProductDatabaseClient.ViewModels
                 foreach (var product in products)
                 {
                     ProductsList.Add(product);
+                }
+            }
+            finally
+            {
+                Loading = false;
+            }
+        }
+
+        /// <summary>
+        /// Load product category list
+        /// </summary>
+        public async Task UpdateProductCategoryList()
+        {
+            try
+            {
+                Loading = true;
+                ProductCategoryList.Clear();
+
+                var categories = await productRepository.GetAllCategories();
+                foreach (var category in categories)
+                {
+                    ProductCategoryList.Add(category);
                 }
             }
             finally
@@ -127,8 +167,11 @@ namespace ProductDatabaseClient.ViewModels
         {
             try
             {
+                var category = SelectedCategory as int?;
+                if (!category.HasValue) return;
+
                 Loading = true;
-                await productRepository.ImportFromExcel(filePath);
+                await productRepository.ImportFromExcel(filePath, category.Value);
                 await UpdateProductsList();
             }
             finally

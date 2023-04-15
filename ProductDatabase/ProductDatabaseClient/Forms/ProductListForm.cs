@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2023 Yuri Trofimov.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using ProductDatabase.Data.Product;
 using ProductDatabaseClient.ViewModels;
+using System;
+using System.Windows.Forms;
 
 namespace ProductDatabaseClient.Forms
 {
@@ -17,6 +17,7 @@ namespace ProductDatabaseClient.Forms
         {
             this.viewModel = viewModel;
             InitializeComponent();
+            SetupDataBindings();
             Load += ProductListForm_Load;
         }
 
@@ -24,21 +25,29 @@ namespace ProductDatabaseClient.Forms
         {
             try
             {
-                // Setup DataBindings
-
-                DataBindings.Add(nameof(UseWaitCursor), viewModel, nameof(viewModel.Loading));
-                dgvProducts.DataBindings.Add(nameof(dgvProducts.DataSource), viewModel, nameof(viewModel.ProductsList));
-                progressBarLoading.ProgressBar.DataBindings.Add(nameof(progressBarLoading.ProgressBar.Visible), viewModel, nameof(viewModel.Loading));
-
-                btnEdit.DataBindings.Add(nameof(btnEdit.Enabled), viewModel, nameof(viewModel.CanEdit));
-                btnDelete.DataBindings.Add(nameof(btnDelete.Enabled), viewModel, nameof(viewModel.CanDelete));
-
+                await viewModel.UpdateProductCategoryList();
                 await viewModel.UpdateProductsList();
             }
             catch (Exception ex)
             {
                 DisplayError(ex);
             }
+        }
+
+        private void SetupDataBindings()
+        {
+            // Setup DataBindings
+            DataBindings.Add(nameof(UseWaitCursor), viewModel, nameof(viewModel.Loading));
+            dgvProducts.DataBindings.Add(nameof(dgvProducts.DataSource), viewModel, nameof(viewModel.ProductsList));
+            progressBarLoading.ProgressBar.DataBindings.Add(nameof(progressBarLoading.ProgressBar.Visible), viewModel, nameof(viewModel.Loading));
+
+            btnEdit.DataBindings.Add(nameof(btnEdit.Enabled), viewModel, nameof(viewModel.CanEdit));
+            btnDelete.DataBindings.Add(nameof(btnDelete.Enabled), viewModel, nameof(viewModel.CanDelete));
+
+            lookupProductCategory.DataBindings.Add(nameof(lookupProductCategory.DataSource), viewModel, nameof(viewModel.ProductCategoryList));
+            lookupProductCategory.DataBindings.Add(nameof(lookupProductCategory.SelectedValue), viewModel, nameof(viewModel.SelectedCategory));
+            lookupProductCategory.ValueMember = "Id";
+            lookupProductCategory.DisplayMember = "Name";
         }
 
         private void btnQuit_Click(object sender, EventArgs e)

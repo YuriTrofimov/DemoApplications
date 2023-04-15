@@ -34,6 +34,7 @@
             this.btnEdit = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
             this.btnQuit = new System.Windows.Forms.Button();
+            this.lookupProductCategory = new ProductDatabaseClient.Controls.FilterCombo();
             this.dgvProducts = new System.Windows.Forms.DataGridView();
             this.colId = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colArticle = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -72,6 +73,7 @@
             this.flowLayoutPanel1.Controls.Add(this.btnEdit);
             this.flowLayoutPanel1.Controls.Add(this.btnDelete);
             this.flowLayoutPanel1.Controls.Add(this.btnQuit);
+            this.flowLayoutPanel1.Controls.Add(this.lookupProductCategory);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -117,6 +119,17 @@
             this.btnQuit.Text = "Quit";
             this.btnQuit.UseVisualStyleBackColor = true;
             this.btnQuit.Click += new System.EventHandler(this.btnQuit_Click);
+            // 
+            // lookupProductCategory
+            // 
+            this.lookupProductCategory.Caption = "Product Category";
+            this.lookupProductCategory.DataSource = null;
+            this.lookupProductCategory.DisplayMember = "";
+            this.lookupProductCategory.Location = new System.Drawing.Point(643, 3);
+            this.lookupProductCategory.Name = "lookupProductCategory";
+            this.lookupProductCategory.Size = new System.Drawing.Size(441, 76);
+            this.lookupProductCategory.TabIndex = 4;
+            this.lookupProductCategory.ValueMember = "";
             // 
             // dgvProducts
             // 
@@ -245,5 +258,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPrice;
         private System.Windows.Forms.DataGridViewTextBoxColumn colQuantity;
+        private Controls.FilterCombo lookupProductCategory;
     }
 }
